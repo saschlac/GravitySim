@@ -1,0 +1,105 @@
+var Mass = function (initX, initY, veloX, veloY, mass, radius, color, layer) {
+
+    this.stageMaxX = 1000;
+    this.stageMaxY = 800;
+
+    this.velocity = Object.create(null);
+    this.velocity.x = veloX;
+    this.velocity.y = veloY;
+    
+    this.position = Object.create(null);
+    this.position.x = initX;
+    this.position.y = initY;
+    
+    this.mass = mass;
+    
+    this.circle = new Kinetic.Circle({
+        x: this.position.x,
+        y: this.position.y,
+        radius: radius,
+        fill: color,
+        //stroke: 'black',
+        //strokeWidth: 1,
+        //draggable: true
+    });
+    
+    layer.add(this.circle);
+    
+    /*
+    this.line = new Kinetic.Line({
+        points: [0,0,this.position.x, this.position.y],
+        stroke: 'red',
+        strokeWidth: 2
+    });
+   
+    layer.add(this.line);
+    */
+};
+
+Mass.prototype.update = function(masses){
+
+    // Calculate forces
+    var forceSumX = 0;
+    var forceSumY = 0;
+    
+    var G = 6;
+    var distance = 0;
+    var gravForce = 0;
+    
+    for( i in masses ){
+        //console.log(masses[i].position.x, masses[i].position.y, masses[i].mass);
+        // F = G*m1*m2/r^2
+        
+        xDiff = masses[i].position.x - this.position.x;
+        yDiff = masses[i].position.y - this.position.y;
+        distance = Math.sqrt( xDiff*xDiff + yDiff*yDiff );
+        
+        if( distance < 100 )
+            distance = 100;
+            
+        gravForce = (G*masses[i].mass*this.mass)/(distance*distance);
+
+        //console.log( Math.round(100*xDiff/distance)/100 +"," + Math.round(100*yDiff/distance)/100 );
+        
+        forceSumX += gravForce*(xDiff/distance);
+        forceSumY += gravForce*(yDiff/distance);
+        
+    }
+    
+    // Make changes in velocity
+    this.velocity.x = this.velocity.x + forceSumX/this.mass;
+    this.velocity.y = this.velocity.y + forceSumY/this.mass;
+    
+    
+    if( this.position.x + this.mass > this.stageMaxX ){
+        this.position.x = this.stageMaxX - this.mass;
+        this.velocity.x = -1 * this.velocity.x;
+    }
+    if( this.position.x - this.mass < 0 ){
+        this.position.x = this.mass;
+        this.velocity.x = -1 * this.velocity.x;
+    }
+    if( this.position.y + this.mass > this.stageMaxY ){
+        this.position.y = this.stageMaxY - this.mass;
+        this.velocity.y = -1 * this.velocity.y;
+    }
+    if( this.position.y - this.mass < 0 ){
+        this.position.y = this.mass;
+        this.velocity.y = -1 * this.velocity.y;
+    }
+    
+    
+    // Make changes in position    
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+
+    this.circle.setPosition(this.position.x, this.position.y);
+    
+    //this.line.setPoints([this.position.x, this.position.y,this.position.x+50*(forceSumX/this.mass),this.position.y+50*(forceSumY/this.mass)]);
+
+};
+
+Mass.getRandomColor = function() {
+    var colors = ['red', 'orange', 'green', 'blue', 'purple', 'white', 'grey'];
+    return colors[Math.round(Math.random() * 5)];
+};

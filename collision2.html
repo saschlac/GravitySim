@@ -1,0 +1,64 @@
+<html>
+<head>
+
+	<link rel="stylesheet" type="text/css" href="src/css/Simulation.css">
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+	<script type="text/javascript" src="src/js/kinetic-v4.7.2.min.js"></script>
+	<script type="text/javascript" src="src/js/Mass.js"></script>
+	<script type="text/javascript" src="src/js/Simulation.js"></script>
+
+
+	<script type="text/javascript">
+	    
+        Simulation.prototype.initialize = function () {
+        
+            this.borders = true;
+        
+            for (i=0;i<400;i++){
+                var initX = Math.random() * ( this.stage.getWidth() );
+                var initY = Math.random() * ( this.stage.getHeight() );
+                var velocX = Math.random() * ( 0.5 ) - 0.25;
+                var velocY = Math.random() * ( 0.5 ) - 0.25;
+                var mass = Math.random() * (300) + 10;
+                var color = Mass.getRandomColor();
+                this.masses.push( new Mass( initX, initY, velocX, velocY, mass, 1 /*Density*/, color, this.massLayer, Mass.types.DYNAMIC, this) );    
+            }
+        
+        };
+	    
+	    var sim;
+	
+	    function init(){
+	    
+	        console.log(Simulation.prototype);
+            
+            sim = new Simulation();
+            
+    	    sim.initialize();
+    	    
+    	    var startTime = new Date().getTime();
+    	    var time = 0;
+    	    
+    	    window.setInterval(updateSim,1);
+	    }
+	    
+	    function updateSim(){
+    	    sim.update();
+    	    sim.render();
+	    }
+	</script>
+
+</head>
+<body onload="init()">
+
+<button id="update" onclick="updateSim()">Update</button>
+
+<div id="contents">
+    <div id="simCanvas"></div>
+    <p id="renderTime">Lol</p>
+</div>
+
+</body>
+</html>

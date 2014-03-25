@@ -1,0 +1,73 @@
+<html>
+<head>
+
+	<link rel="stylesheet" type="text/css" href="src/css/Simulation.css">
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+	<script type="text/javascript" src="src/js/kinetic-v4.7.2.min.js"></script>
+	<script type="text/javascript" src="src/js/Mass.js"></script>
+	<script type="text/javascript" src="src/js/Simulation.js"></script>
+
+
+	<script type="text/javascript">
+	    
+	    var sim;
+	
+	    function init(){
+    	    sim = new Simulation();
+    	    
+    	    sim.initialize = function () {
+    	    
+    	        this.borders = false;
+    
+                //Center Mass
+                var centerInitX = this.stage.getWidth()/2;
+                var centerInitY = this.stage.getHeight()/2;
+                var centerMass = 20000;
+                this.masses.push( new Mass( centerInitX, centerInitY, 0, 0, centerMass, 1, 'yellow', this.massLayer, Mass.types.STATIC, this) );
+    
+
+    
+                for (i=0;i<400;i++){
+                    var radius = Math.random() * 450 + 100;
+                    var angle  = Math.random() * 2 * Math.PI;
+                    var initX = centerInitX + radius*Math.cos(angle);
+                    var initY = centerInitY + radius*Math.sin(angle);
+                    
+                    var baseVeloc = Math.sqrt(2*Simulation.G*centerMass/radius)/1.5;
+                    var velocX = baseVeloc*Math.cos(angle + Math.PI/2);
+                    var velocY = baseVeloc*Math.sin(angle + Math.PI/2);
+                    var mass = 100+i/1000;
+                    var color = Mass.getRandomColor();
+                    this.masses.push( new Mass( initX, initY, velocX, velocY, mass, 1, color, this.massLayer, Mass.types.DYNAMIC, this) );    
+                }
+                
+            };
+    	    
+    	    sim.initialize();
+    	    
+    	    var startTime = new Date().getTime();
+    	    var time = 0;
+    	    
+    	    window.setInterval(updateSim,1);
+	    }
+	    
+	    function updateSim(){
+    	    sim.update();
+    	    sim.render();
+	    }
+	</script>
+
+</head>
+<body onload="init()">
+
+<button id="update" onclick="updateSim()">Update</button>
+
+<div id="contents">
+    <div id="simCanvas"></div>
+    <p id="renderTime">Lol</p>
+</div>
+
+</body>
+</html>
