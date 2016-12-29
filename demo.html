@@ -1,0 +1,48 @@
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="src/css/Simulation.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+		<!-- <script type="text/javascript" src="src/js/Mass.js"></script> -->
+		<!-- <script type="text/javascript" src="src/js/Simulation.js"></script> -->
+		<script type="text/javascript" src="src/js/Game.js"></script>
+		<script type="text/javascript" src="src/js/Ship.js"></script>
+
+		<title>#yolo</title>
+		<script>
+			var game;
+
+			// Simulation.prototype.initialize = function () {
+			// 	this.borders = true;        
+
+			// 	var initX = $("#simCanvas").width()/2;
+			// 	var initY = $("#simCanvas").height()/2;
+			// 	var velocX = 0;
+			// 	var velocY = 0;
+			// 	var mass = 2000;
+			// 	var color = "green";
+
+			// 	this.playerMass = new Mass( initX, initY, velocX, velocY, mass, 1 /*Density*/, color, Mass.types.PLAYER, this)
+
+			// 	this.masses.push( this.playerMass );    
+			// };
+
+			function init() {
+				game = new Game("simCanvas");
+			}
+
+			function playPause(){
+				game.playPause();
+			}
+		</script>
+
+	</head>
+
+	<body onload="init();">
+		<div id="contents">
+		    <canvas id="simCanvas" width="1000" height="1000"></canvas>
+		</div>
+		<button onClick = "playPause()">Play/Pause</button>
+	</body>
+
+</html>
