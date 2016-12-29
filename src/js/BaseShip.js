@@ -1,33 +1,32 @@
 (function (window) {
 
-	function Ship() {
+	function BaseShip() {
 		this.Container_constructor();
 
 		this.debugMode = true;
 
-		this.shipBody = new createjs.Shape();
+		// this.shipBody = new createjs.Shape();
 		this.shipVelocityVector = new createjs.Shape();
 
-		this.addChild(this.shipVelocityVector);
-		this.addChild(this.shipBody);
-
-		this.makeShape();
+		this.loadAssets();
 		this.timeout = 0;
 		this.thrust = 0;
 		this.velocityX = 0;
 		this.velocityY = 0;
 		this.rotation = 0;
 	}
-	var p = createjs.extend(Ship, createjs.Container);
+	var p = createjs.extend(BaseShip, createjs.Container);
 
 // public properties:
-	Ship.MAX_THRUST = 1.2;
-	Ship.MAX_VELOCITY = 20;
-	Ship.DECELERATION_FACTOR = 7.5;
-	Ship.TURN_FACTOR = 7; // degrees per tick
-	Ship.ROTATION_OFFSET = 90;
-	Ship.TARGET_HIT_BOX = 15;
-	Ship.MASS = 1;
+	BaseShip.MAX_THRUST = 0.6;
+	BaseShip.MAX_VELOCITY = 4;
+	BaseShip.DECELERATION_FACTOR = 7.5;
+	BaseShip.TURN_FACTOR = 20; // degrees per tick
+	BaseShip.ROTATION_OFFSET = 90;
+	BaseShip.TARGET_HEADING_THRESHOLD = 20;
+	BaseShip.TARGET_HIT_BOX = 30;
+	BaseShip.MASS = 1;
+	BaseShip.RESIDUAL_VELOCITY_ON_REROUTE = 0.025;
 
 
 // public properties:
@@ -46,6 +45,23 @@
 	p.targetX;
 	p.targetY;
 	p.targetHeading; //
+
+	p.loadAssets = function() {
+		var preload = new createjs.LoadQueue();
+
+		preload.addEventListener("fileload", function(event){
+			this.shipBody = new createjs.Bitmap(event.result);
+			this.addChild(this.shipBody);
+			this.shipBody.scaleX = this.shipBody.scaleY = 0.15;
+			this.shipBody.regX = 300;
+			this.shipBody.regY = 300;
+
+			this.addChild(this.shipVelocityVector);
+
+		}.bind(this));
+
+		preload.loadFile("media/ship-2.png");
+	}
 	
 
 // public methods:
@@ -71,8 +87,9 @@
 		this.targetX = x;
 		this.targetY = y;
 
-		// this.velocityX = 0;
-		// this.velocityY = 0;
+		// cut current velocity
+		this.velocityX = this.velocityX * BaseShip.RESIDUAL_VELOCITY_ON_REROUTE;
+		this.velocityY = this.velocityY * BaseShip.RESIDUAL_VELOCITY_ON_REROUTE;
 
 		this.updateTargetHeading();
 
@@ -107,12 +124,12 @@
 
 			// Update Velocity
 			// console.log("Setting new target heading ",  this.targetHeading, this.rotation);
-			if(this.inRange(this.rotation, this.targetHeading, Ship.TARGET_HIT_BOX)){
+			if(this.inRange(this.rotation, this.targetHeading, BaseShip.TARGET_HEADING_THRESHOLD)){
 				this.accelerate();
 			}
 
 			// Check to see if we've hit our target
-			if(this.inRange(this.x, this.targetX, Ship.TARGET_HIT_BOX) && this.inRange(this.y, this.targetY, Ship.TARGET_HIT_BOX)){
+			if(this.inRange(this.x, this.targetX, BaseShip.TARGET_HIT_BOX) && this.inRange(this.y, this.targetY, BaseShip.TARGET_HIT_BOX)){
 				this.clearTarget();
 			}
 		}
@@ -120,7 +137,6 @@
 		if(this.debugMode){
 			this.drawVelocityVector();
 		}
-		
 
 		// Update Position
 		this.x += this.velocityX;
@@ -177,10 +193,10 @@
 		// console.log("target:", targetComp, "actual", actualComp);
 
 		if( (targetComp > actualComp && !over180) || (targetComp < actualComp && over180))
-			this.rotation += Math.min(Ship.TURN_FACTOR, Math.abs(this.targetHeading - this.rotation)); // clockwise
+			this.rotation += Math.min(BaseShip.TURN_FACTOR, Math.abs(this.targetHeading - this.rotation)); // clockwise
 
 		if( (targetComp < actualComp && !over180) || (targetComp > actualComp && over180))
-			this.rotation -= Math.min(Ship.TURN_FACTOR, Math.abs(this.targetHeading - this.rotation)); // counter-clockwise
+			this.rotation -= Math.min(BaseShip.TURN_FACTOR, Math.abs(this.targetHeading - this.rotation)); // counter-clockwise
 
 		// Shouldn't ever happen but good to normalize
 		if(this.rotation > 180)
@@ -194,13 +210,13 @@
 	p.accelerate = function () {
 		var acceleration = this.getAcceleration();
 
-		if(this.inRange(this.x, this.targetX, Math.abs(this.velocityX) * Ship.DECELERATION_FACTOR) && this.inRange(this.y, this.targetY, Math.abs(this.velocityY) * Ship.DECELERATION_FACTOR)){
+		if(this.inRange(this.x, this.targetX, Math.abs(this.velocityX) * BaseShip.DECELERATION_FACTOR) && this.inRange(this.y, this.targetY, Math.abs(this.velocityY) * BaseShip.DECELERATION_FACTOR)){
 			acceleration = -1 * acceleration;
 		}
 
 		// console.log(acceleration);
 
-		if(Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY) < Ship.MAX_VELOCITY){
+		if(Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY) < BaseShip.MAX_VELOCITY){
 			//accelerate
 			this.velocityX += Math.sin((this.rotation + 90) * (Math.PI / -180)) * acceleration;
 			this.velocityY += Math.cos((this.rotation + 90) * (Math.PI / -180)) * acceleration;
@@ -210,17 +226,17 @@
 	}
 
 	p.getMass = function(){
-		return Ship.MASS;
+		return BaseShip.MASS;
 	}
 
 	p.getAcceleration = function(){
-		return Ship.MAX_THRUST / this.getMass();
+		return BaseShip.MAX_THRUST / this.getMass();
 	}
 
 	p.drawVelocityVector = function(){
 		var maxVelocityVector = 50;
 
-		var ratio = (this.velocityX*this.velocityX + this.velocityY * this.velocityY)/(2 * Ship.MAX_VELOCITY * Ship.MAX_VELOCITY);
+		var ratio = (this.velocityX*this.velocityX + this.velocityY * this.velocityY)/(2 * BaseShip.MAX_VELOCITY * BaseShip.MAX_VELOCITY);
 
 		var velocityVector = maxVelocityVector * ratio;
 
@@ -240,6 +256,6 @@
 		this.shipVelocityVector.rotation = scratch;
 	}
 
-	window.Ship = createjs.promote(Ship, "Container");
+	window.BaseShip = createjs.promote(BaseShip, "Container");
 
 }(window));

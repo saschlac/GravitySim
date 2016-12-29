@@ -10,14 +10,25 @@
 		
 		this.stage = new createjs.Stage(this.canvasName);
 
-		this.initialize();
+		this.loadAssets();
+	}
+
+	Game.prototype.loadAssets = function() {
+		var preload = new createjs.LoadQueue();
+
+		preload.addEventListener("fileload", function(event){
+			this.stage.addChild(new createjs.Bitmap(event.result));
+			this.initialize();
+		}.bind(this));
+
+		preload.loadFile("media/space-1.jpg");
 	}
 
 	Game.prototype.initialize = function () {
 		this.borders = false;
 		this.running = true; 
 
-		this.ship = new Ship();
+		this.ship = new BaseShip();
 		this.ship.x = this.canvas.width / 2;
 		this.ship.y = this.canvas.height / 2;
 
@@ -40,7 +51,7 @@
 
 			var g = this.shipTarget.graphics;
 			g.clear();
-			g.beginStroke("#000000");
+			g.beginStroke("#00FF00");
 
 			g.moveTo(5, 5);
 			g.lineTo(-5, -5);
